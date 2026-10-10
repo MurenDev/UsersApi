@@ -1,5 +1,6 @@
 using FluentValidation;
 using UsersApi.Application.Common;
+using UsersApi.Application.Users;
 using UsersApi.Application.Users.Commands;
 using UsersApi.Application.Users.Queries;
 
@@ -27,16 +28,24 @@ public static class UserEndpoints
 
             return result.Error switch
             {
-                ErrorType.Conflict => Results.Conflict(new { error = result.Message }),
+                ErrorType.Conflict => Results.Conflict(new ErrorResponse(result.Message!)),
                 _ => Results.Created($"/users/{result.Value!.Id}", result.Value)
             };
-        });
+        })
+        .WithSummary("Crear usuario")
+        .WithDescription("El password es opcional. Si se envia se guarda hasheado.")
+        .Produces<UserResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem()
+        .Produces<ErrorResponse>(StatusCodes.Status409Conflict);
 
         group.MapGet("/", async (bool? isActive, GetUsersHandler handler, CancellationToken ct) =>
         {
             var users = await handler.Handle(new GetUsersQuery(isActive), ct);
             return Results.Ok(users);
-        });
+        })
+        .WithSummary("Listar usuarios")
+        .WithDescription("Se puede filtrar con isActive=true o isActive=false.")
+        .Produces<List<UserResponse>>();
 
         group.MapGet("/{id:int}", async (int id, GetUserByIdHandler handler, CancellationToken ct) =>
         {
@@ -44,10 +53,13 @@ public static class UserEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.Ok(result.Value)
             };
-        });
+        })
+        .WithSummary("Obtener usuario por id")
+        .Produces<UserResponse>()
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id:int}", async (
             int id,
@@ -66,11 +78,17 @@ public static class UserEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
-                ErrorType.Conflict => Results.Conflict(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
+                ErrorType.Conflict => Results.Conflict(new ErrorResponse(result.Message!)),
                 _ => Results.Ok(result.Value)
             };
-        });
+        })
+        .WithSummary("Modificar usuario")
+        .WithDescription("Si no se envia isActive se mantiene el valor actual.")
+        .Produces<UserResponse>()
+        .ProducesValidationProblem()
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
+        .Produces<ErrorResponse>(StatusCodes.Status409Conflict);
 
         group.MapDelete("/{id:int}", async (int id, DeleteUserHandler handler, CancellationToken ct) =>
         {
@@ -78,10 +96,14 @@ public static class UserEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.NoContent()
             };
-        });
+        })
+        .WithSummary("Eliminar usuario")
+        .WithDescription("Tambien se eliminan las direcciones del usuario.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
 
         group.MapPost("/bulk", async (
             BulkCreateUsersCommand command,
@@ -95,6 +117,10 @@ public static class UserEndpoints
 
             var result = await handler.Handle(command, ct);
             return Results.Ok(result);
-        });
+        })
+        .WithSummary("Carga masiva de usuarios")
+        .WithDescription("Los usuarios se procesan en paralelo. La respuesta indica cuantos se crearon y cuales fallaron con el motivo.")
+        .Produces<BulkCreateUsersResponse>()
+        .ProducesValidationProblem();
     }
 }

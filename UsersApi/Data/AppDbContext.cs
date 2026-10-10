@@ -19,6 +19,10 @@ public class AppDbContext : DbContext
             e.Property(u => u.Email).IsRequired().HasMaxLength(200);
             e.HasIndex(u => u.Email).IsUnique();
 
+            // SQLite no guarda la zona horaria, al leer se marca la fecha como UTC
+            e.Property(u => u.CreatedAt)
+             .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
             e.HasMany(u => u.Addresses)
              .WithOne(a => a.User)
              .HasForeignKey(a => a.UserId)

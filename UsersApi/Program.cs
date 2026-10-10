@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -10,6 +11,7 @@ using UsersApi.Application.Users.Commands;
 using UsersApi.Application.Users.Queries;
 using UsersApi.Data;
 using UsersApi.Endpoints;
+using UsersApi.Middleware;
 using UsersApi.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +22,13 @@ builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserValidator>();
+
+// los errores de validacion salen con el nombre del campo igual que en el JSON (name, email)
+ValidatorOptions.Global.PropertyNameResolver = (type, member, expression) =>
+    member is null ? null : JsonNamingPolicy.CamelCase.ConvertName(member.Name);
+
+// si el body no se puede leer se lanza la excepcion para que la maneje ErrorHandlingMiddleware
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
 // Users
 builder.Services.AddScoped<CreateUserHandler>();
@@ -73,6 +82,7 @@ await DbInitializer.InitializeAsync(app.Services);
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<ApiKeyMiddleware>();
 
 app.MapGet("/", () => "UsersApi funcionando").ExcludeFromDescription();

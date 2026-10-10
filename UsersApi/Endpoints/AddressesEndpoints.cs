@@ -1,4 +1,5 @@
 using FluentValidation;
+using UsersApi.Application.Addresses;
 using UsersApi.Application.Addresses.Commands;
 using UsersApi.Application.Addresses.Queries;
 using UsersApi.Application.Common;
@@ -28,10 +29,15 @@ public static class AddressEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.Created($"/users/{userId}/addresses", result.Value)
             };
-        }).WithTags("Addresses");
+        })
+        .WithTags("Addresses")
+        .WithSummary("Crear direccion para un usuario")
+        .Produces<AddressResponse>(StatusCodes.Status201Created)
+        .ProducesValidationProblem()
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
 
         app.MapGet("/users/{userId:int}/addresses", async (int userId, GetAddressesByUserHandler handler, CancellationToken ct) =>
         {
@@ -39,10 +45,14 @@ public static class AddressEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.Ok(result.Value)
             };
-        }).WithTags("Addresses");
+        })
+        .WithTags("Addresses")
+        .WithSummary("Listar direcciones de un usuario")
+        .Produces<List<AddressResponse>>()
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
 
         app.MapPut("/addresses/{id:int}", async (
             int id,
@@ -61,10 +71,15 @@ public static class AddressEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.Ok(result.Value)
             };
-        }).WithTags("Addresses");
+        })
+        .WithTags("Addresses")
+        .WithSummary("Modificar direccion")
+        .Produces<AddressResponse>()
+        .ProducesValidationProblem()
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
 
         app.MapDelete("/addresses/{id:int}", async (int id, DeleteAddressHandler handler, CancellationToken ct) =>
         {
@@ -72,9 +87,13 @@ public static class AddressEndpoints
 
             return result.Error switch
             {
-                ErrorType.NotFound => Results.NotFound(new { error = result.Message }),
+                ErrorType.NotFound => Results.NotFound(new ErrorResponse(result.Message!)),
                 _ => Results.NoContent()
             };
-        }).WithTags("Addresses");
+        })
+        .WithTags("Addresses")
+        .WithSummary("Eliminar direccion")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces<ErrorResponse>(StatusCodes.Status404NotFound);
     }
 }
