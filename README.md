@@ -27,10 +27,12 @@ La API queda en `http://localhost:5163` y Swagger en `http://localhost:5163/swag
 
 Se usa SQLite y el archivo `app.db` se crea solo al levantar el proyecto. Al iniciar se aplican las migraciones pendientes y, si la tabla de monedas está vacía, se cargan algunas monedas de ejemplo (PYG, USD, EUR, BRL, ARS). La moneda base es PYG = 1 y las tasas son solo de ejemplo.
 
-Si se quiere manejar las migraciones a mano:
+Si se quiere manejar las migraciones a mano, los comandos se ejecutan dentro de la carpeta del proyecto (`UsersApi/UsersApi`):
 
 ```bash
 dotnet tool install --global dotnet-ef
+
+cd UsersApi/UsersApi
 
 # aplicar las migraciones
 dotnet ef database update

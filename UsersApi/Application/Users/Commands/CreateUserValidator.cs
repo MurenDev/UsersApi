@@ -11,6 +11,7 @@ public class CreateUserValidator : AbstractValidator<CreateUserCommand>
             .MaximumLength(100).WithMessage("El nombre no puede superar 100 caracteres");
 
         RuleFor(x => x.Email)
+            .Cascade(CascadeMode.Stop) // con el primer error alcanza, no hace falta sumar el de formato
             .NotEmpty().WithMessage("El email es obligatorio")
             .EmailAddress().WithMessage("El email no tiene un formato valido")
             .MaximumLength(200).WithMessage("El email no puede superar 200 caracteres");

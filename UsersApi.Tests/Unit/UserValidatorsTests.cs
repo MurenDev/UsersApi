@@ -41,6 +41,24 @@ public class UserValidatorsTests
     }
 
     [Fact]
+    public void CreateUser_WithEmptyEmail_ReturnsOnlyOneError()
+    {
+        var result = _createValidator.Validate(new CreateUserCommand("Juan", "", null));
+
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("El email es obligatorio", error.ErrorMessage);
+    }
+
+    [Fact]
+    public void UpdateUser_WithEmptyEmail_ReturnsOnlyOneError()
+    {
+        var result = _updateValidator.Validate(new UpdateUserCommand(1, "Juan", "", null));
+
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("El email es obligatorio", error.ErrorMessage);
+    }
+
+    [Fact]
     public void CreateUser_WithNameLongerThan100_IsInvalid()
     {
         var name = new string('a', 101);

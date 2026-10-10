@@ -33,6 +33,16 @@ public class CurrencyValidatorsTests
     }
 
     [Fact]
+    public void CreateCurrency_WithEmptyCode_ReturnsOnlyOneError()
+    {
+        // si el codigo esta vacio alcanza con avisar que es obligatorio
+        var result = _createValidator.Validate(new CreateCurrencyCommand("", "Moneda", 1m));
+
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("El codigo es obligatorio", error.ErrorMessage);
+    }
+
+    [Fact]
     public void CreateCurrency_WithEmptyName_IsInvalid()
     {
         var result = _createValidator.Validate(new CreateCurrencyCommand("USD", "", 1m));

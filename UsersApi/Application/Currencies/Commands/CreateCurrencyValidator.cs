@@ -7,6 +7,7 @@ public class CreateCurrencyValidator : AbstractValidator<CreateCurrencyCommand>
     public CreateCurrencyValidator()
     {
         RuleFor(x => x.Code)
+            .Cascade(CascadeMode.Stop) // con el primer error alcanza, no hace falta sumar el de formato
             .NotEmpty().WithMessage("El codigo es obligatorio")
             .MaximumLength(10).WithMessage("El codigo no puede superar 10 caracteres")
             .Matches("^[a-zA-Z]+$").WithMessage("El codigo solo puede tener letras");
