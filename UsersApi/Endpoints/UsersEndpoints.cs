@@ -82,5 +82,19 @@ public static class UserEndpoints
                 _ => Results.NoContent()
             };
         });
+
+        group.MapPost("/bulk", async (
+            BulkCreateUsersCommand command,
+            IValidator<BulkCreateUsersCommand> validator,
+            BulkCreateUsersHandler handler,
+            CancellationToken ct) =>
+        {
+            var validation = await validator.ValidateAsync(command, ct);
+            if (!validation.IsValid)
+                return Results.ValidationProblem(validation.ToDictionary());
+
+            var result = await handler.Handle(command, ct);
+            return Results.Ok(result);
+        });
     }
 }
