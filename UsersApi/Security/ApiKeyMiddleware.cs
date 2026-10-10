@@ -25,7 +25,7 @@ public class ApiKeyMiddleware
             || provided != _apiKey)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { error = "APIKey invalida" });
+            await context.Response.WriteAsJsonAsync(new { error = "API/Key invalida" });
             return;
         }
 
