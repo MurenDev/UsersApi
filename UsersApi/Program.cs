@@ -91,3 +91,6 @@ app.MapAddressEndpoints();
 app.MapCurrencyEndpoints();
 
 app.Run();
+
+// necesario para que el proyecto de tests pueda levantar la API con WebApplicationFactory
+public partial class Program { }

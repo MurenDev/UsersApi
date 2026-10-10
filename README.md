@@ -148,9 +148,21 @@ La respuesta indica cuántos se crearon y cuáles fallaron con el motivo. `index
 
 Un usuario inválido o repetido no cancela el resto de la carga. El máximo es de 1000 usuarios por request.
 
+## Tests
+
+Hay un proyecto de tests de integración (`UsersApi.Tests`) con xUnit. Levanta la API en memoria con una base SQLite temporal, así que no toca el archivo `app.db`. Desde la raíz del repo:
+
+```bash
+dotnet test
+```
+
+Cubre la API Key, el CRUD de usuarios y direcciones, la carga masiva (usando el mismo JSON de `sample-data`), las monedas y la conversión.
+
 ## Estructura
 
 ```
+UsersApi.slnx             Solución con los dos proyectos
+UsersApi.Tests/           Tests de integración
 UsersApi/
   Application/
     Common/               Result que devuelven los handlers
@@ -163,6 +175,7 @@ UsersApi/
     CurrencyConversion
   Data/                   DbContext e inicialización de la base
   Endpoints/              Rutas de Minimal API
+  Middleware/             Manejo de errores no controlados
   Migrations/
   Models/
   Security/               Middleware de API Key
@@ -191,10 +204,10 @@ Implementado:
 - Paralelismo con `Task.WhenAll` y uso de `IDbContextFactory`
 - Carga masiva con su JSON de prueba
 - Swagger
+- Tests de integración
 
 Pendiente:
 
-- Tests automatizados. Los endpoints se probaron a mano con Swagger y curl.
 - No hay endpoint de login, el password solo se guarda hasheado.
 - Paginación en los listados.
 - En la carga masiva no hay un límite de tareas concurrentes más allá del máximo de 1000 usuarios.
