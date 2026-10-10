@@ -1,5 +1,7 @@
 # UsersApi
 
+[![CI](https://github.com/MurenDev/UsersApi/actions/workflows/ci.yml/badge.svg)](https://github.com/MurenDev/UsersApi/actions/workflows/ci.yml)
+
 API REST hecha con .NET Minimal API para la prueba técnica. Tiene CRUD de usuarios, direcciones por usuario y un módulo de conversión de divisas.
 
 ## Tecnologías
@@ -182,6 +184,8 @@ Para correr solo los unitarios:
 ```bash
 dotnet test --filter "FullyQualifiedName~UsersApi.Tests.Unit"
 ```
+
+Además hay un workflow de GitHub Actions (`.github/workflows/ci.yml`) que compila y corre todos los tests en cada push a `main`.
 
 ## Estructura
 

@@ -25,7 +25,7 @@
 
   <!-- el JSON de prueba de la carga masiva se copia para usarlo en los tests -->
   <ItemGroup>
-    <Content Include="..\sample-data\bulk_users_test.json" Link="sample-data\bulk_users_test.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../sample-data/bulk_users_test.json" Link="sample-data/bulk_users_test.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
