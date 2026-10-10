@@ -33,8 +33,7 @@ public class ConvertCurrencyHandler
         if (to is null)
             return Result<ConvertCurrencyResponse>.NotFound($"No existe la moneda {toCode}");
 
-        var montoBase = query.Amount * from.RateToBase;
-        var convertedAmount = Math.Round(montoBase / to.RateToBase, 4);
+        var convertedAmount = CurrencyCalculator.Convert(query.Amount, from.RateToBase, to.RateToBase);
 
         return Result<ConvertCurrencyResponse>.Ok(
             new ConvertCurrencyResponse(from.Code, to.Code, query.Amount, convertedAmount));

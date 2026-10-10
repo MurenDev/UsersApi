@@ -166,19 +166,26 @@ Un usuario inválido o repetido no cancela el resto de la carga. El máximo es d
 
 ## Tests
 
-Hay un proyecto de tests de integración (`UsersApi.Tests`) con xUnit. Levanta la API en memoria con una base SQLite temporal, así que no toca el archivo `app.db`. Desde la raíz del repo:
+El proyecto `UsersApi.Tests` usa xUnit y tiene dos tipos de tests. Desde la raíz del repo:
 
 ```bash
 dotnet test
 ```
 
-Cubre la API Key, el CRUD de usuarios y direcciones, la carga masiva (usando el mismo JSON de `sample-data`), las monedas y la conversión.
+- **Unitarios** (carpeta `Unit`): prueban los validadores de FluentValidation y el cálculo de la conversión, sin base de datos.
+- **Integración** (carpeta `Integration`): levantan la API en memoria con una base SQLite temporal, así que no tocan el archivo `app.db`. Cubren la API Key, el CRUD de usuarios y direcciones, la carga masiva (usando el mismo JSON de `sample-data`), las monedas y la conversión.
+
+Para correr solo los unitarios:
+
+```bash
+dotnet test --filter "FullyQualifiedName~UsersApi.Tests.Unit"
+```
 
 ## Estructura
 
 ```
 UsersApi.slnx             Solución con los dos proyectos
-UsersApi.Tests/           Tests de integración
+UsersApi.Tests/           Tests unitarios y de integración
 UsersApi/
   Application/
     Common/               Result que devuelven los handlers
@@ -220,7 +227,7 @@ Implementado:
 - Paralelismo con `Task.WhenAll` y uso de `IDbContextFactory`
 - Carga masiva con su JSON de prueba
 - Swagger
-- Tests de integración
+- Tests unitarios y de integración
 
 Pendiente:
 
