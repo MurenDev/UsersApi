@@ -29,12 +29,10 @@ La API queda en `http://localhost:5163` y Swagger en `http://localhost:5163/swag
 
 Se usa SQLite y el archivo `app.db` se crea solo al levantar el proyecto. Al iniciar se aplican las migraciones pendientes y, si la tabla de monedas está vacía, se cargan algunas monedas de ejemplo (PYG, USD, EUR, BRL, ARS). La moneda base es PYG = 1 y las tasas son solo de ejemplo.
 
-Si se quiere manejar las migraciones a mano, los comandos se ejecutan dentro de la carpeta del proyecto (`UsersApi/UsersApi`):
+Si se quiere manejar las migraciones a mano, los comandos se ejecutan dentro de la carpeta del proyecto (la misma desde la que se hace `dotnet run`):
 
 ```bash
 dotnet tool install --global dotnet-ef
-
-cd UsersApi/UsersApi
 
 # aplicar las migraciones
 dotnet ef database update
@@ -64,6 +62,8 @@ curl http://localhost:5163/users -H "X-API-KEY: prueba123"
 ## Endpoints
 
 El archivo `UsersApi/UsersApi.http` tiene un ejemplo de cada endpoint ya con la API Key cargada. Se puede ejecutar directamente desde Visual Studio, Rider o VS Code (con la extensión REST Client).
+
+Los ejemplos con curl de este README están escritos para bash (Git Bash, Linux o Mac). En la consola de Windows es más cómodo usar Swagger o el archivo `.http`.
 
 ### Users
 
@@ -216,7 +216,7 @@ sample-data/              JSON de prueba para la carga masiva
 - **DbContextFactory:** se registra `IDbContextFactory<AppDbContext>` con `AddDbContextFactory` y cada handler crea su propio contexto. No se inyecta el `DbContext` directamente porque no se puede compartir una misma instancia entre tareas que corren al mismo tiempo.
 - **Paralelismo:** hay dos flujos con `Task.WhenAll`. En la carga masiva cada usuario se inserta en una tarea con su propio `DbContext`, con un `SemaphoreSlim` que limita a 10 las que corren a la vez. En la conversión se buscan la moneda de origen y la de destino en paralelo. En los dos casos las tareas se lanzan con `Task.Run`, porque el proveedor de SQLite ejecuta las llamadas async de forma síncrona y sin eso correrían una detrás de otra.
 - **CQRS:** cada caso de uso tiene su command o query, su handler y su validador en archivos separados. Los handlers devuelven un `Result` y el endpoint lo traduce al código HTTP. No se usó MediatR para no agregar una dependencia más.
-- **Validaciones:** cada command tiene su validador de FluentValidation y los errores se devuelven con `400` indicando el campo.
+- **Validaciones:** los commands y queries que reciben datos del body tienen su validador de FluentValidation, y los errores se devuelven con `400` indicando el campo. Los de eliminar y los de consulta por id no lo necesitan porque solo reciben un id.
 - **Email:** se guarda en minúsculas, porque SQLite distingue mayúsculas y si no `Juan@test.com` y `juan@test.com` quedarían como dos usuarios distintos.
 - **Monedas:** el código se guarda en mayúsculas. Si en la conversión alguna moneda no existe se responde `404`.
 
