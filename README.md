@@ -222,7 +222,7 @@ sample-data/              JSON de prueba para la carga masiva
 
 ## Qué quedó implementado y qué no
 
-Implementado:
+Todo lo que pide el enunciado quedó implementado, no faltó ningún punto:
 
 - CRUD de Users y Addresses (relación 1:N)
 - Monedas y conversión de divisas
@@ -233,9 +233,10 @@ Implementado:
 - Paralelismo con `Task.WhenAll` y uso de `IDbContextFactory`
 - Carga masiva con su JSON de prueba
 - Swagger
-- Tests unitarios y de integración
 
-Pendiente:
+Además, fuera de lo pedido, se agregaron tests unitarios y de integración, y un workflow de CI.
 
-- No hay endpoint de login, el password solo se guarda hasheado.
+Posibles mejoras que quedan fuera del alcance de la prueba:
+
+- Un endpoint de login. Hoy el password solo se guarda hasheado.
 - Paginación en los listados.
