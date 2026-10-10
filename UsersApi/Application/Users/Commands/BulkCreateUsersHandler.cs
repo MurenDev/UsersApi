@@ -8,6 +8,9 @@ namespace UsersApi.Application.Users.Commands;
 
 public class BulkCreateUsersHandler
 {
+    // cantidad maxima de usuarios que se procesan al mismo tiempo
+    private const int MaxParallel = 10;
+
     private readonly IDbContextFactory<AppDbContext> _factory;
     private readonly IValidator<CreateUserCommand> _validator;
 
@@ -19,8 +22,25 @@ public class BulkCreateUsersHandler
 
     public async Task<BulkCreateUsersResponse> Handle(BulkCreateUsersCommand command, CancellationToken ct = default)
     {
-        // se procesan todos los usuarios en paralelo, cada uno con su propio DbContext
-        var tasks = command.Users.Select((user, index) => CreateOneAsync(user, index, ct));
+        // se procesan los usuarios en paralelo, cada uno con su propio DbContext.
+        // El semaforo limita cuantos corren a la vez para no abrir cientos de conexiones juntas
+        using var semaphore = new SemaphoreSlim(MaxParallel);
+
+        // Task.Run es necesario porque el proveedor de SQLite ejecuta las llamadas async
+        // de forma sincrona. Sin esto cada usuario se procesaria completo antes de empezar el siguiente
+        var tasks = command.Users.Select((user, index) => Task.Run(async () =>
+        {
+            await semaphore.WaitAsync(ct);
+            try
+            {
+                return await CreateOneAsync(user, index, ct);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }, ct));
+
         var results = await Task.WhenAll(tasks);
 
         var created = results.Where(r => r.User is not null).Select(r => r.User!).ToList();

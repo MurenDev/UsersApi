@@ -19,9 +19,10 @@ public class ConvertCurrencyHandler
         var fromCode = query.FromCurrencyCode.Trim().ToUpperInvariant();
         var toCode = query.ToCurrencyCode.Trim().ToUpperInvariant();
 
-        // se buscan las dos monedas en paralelo, cada consulta usa su propio DbContext
-        var fromTask = GetCurrencyAsync(fromCode, ct);
-        var toTask = GetCurrencyAsync(toCode, ct);
+        // se buscan las dos monedas en paralelo, cada consulta usa su propio DbContext.
+        // Task.Run porque el proveedor de SQLite ejecuta las llamadas async de forma sincrona
+        var fromTask = Task.Run(() => GetCurrencyAsync(fromCode, ct), ct);
+        var toTask = Task.Run(() => GetCurrencyAsync(toCode, ct), ct);
         await Task.WhenAll(fromTask, toTask);
 
         var from = fromTask.Result;

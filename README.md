@@ -59,6 +59,8 @@ curl http://localhost:5163/users -H "X-API-KEY: prueba123"
 
 ## Endpoints
 
+El archivo `UsersApi/UsersApi.http` tiene un ejemplo de cada endpoint ya con la API Key cargada. Se puede ejecutar directamente desde Visual Studio, Rider o VS Code (con la extensión REST Client).
+
 ### Users
 
 | Método | Ruta | Descripción |
@@ -66,7 +68,7 @@ curl http://localhost:5163/users -H "X-API-KEY: prueba123"
 | POST | `/users` | Crear usuario |
 | GET | `/users` | Listar usuarios. Filtro opcional `?isActive=true` o `false` |
 | GET | `/users/{id}` | Obtener usuario por id |
-| PUT | `/users/{id}` | Modificar name, email e isActive |
+| PUT | `/users/{id}` | Modificar name, email e isActive. Si no se envía `isActive` se mantiene el valor actual |
 | DELETE | `/users/{id}` | Eliminar usuario (borra también sus direcciones) |
 | POST | `/users/bulk` | Carga masiva |
 
@@ -111,12 +113,26 @@ Respuesta:
 
 ### Errores
 
-- `400`: errores de validación, con el detalle por campo.
+- `400`: errores de validación, con el detalle por campo. También cuando el body no es un JSON válido.
 - `401`: falta la API Key o es incorrecta.
 - `404`: el recurso no existe.
 - `409`: email o código de moneda repetido.
+- `500`: error inesperado. Se registra en el log y no se expone el detalle.
 
-Los `404` y `409` devuelven un JSON con el motivo:
+Los errores de validación indican el campo y el motivo:
+
+```json
+{
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "name": ["El nombre es obligatorio"],
+    "email": ["El email no tiene un formato valido"]
+  }
+}
+```
+
+El resto de los errores devuelve un JSON con el motivo:
 
 ```json
 { "error": "Usuario no encontrado" }
@@ -146,7 +162,7 @@ La respuesta indica cuántos se crearon y cuáles fallaron con el motivo. `index
 }
 ```
 
-Un usuario inválido o repetido no cancela el resto de la carga. El máximo es de 1000 usuarios por request.
+Un usuario inválido o repetido no cancela el resto de la carga. El máximo es de 1000 usuarios por request y se procesan de a 10 en paralelo.
 
 ## Tests
 
@@ -185,7 +201,7 @@ sample-data/              JSON de prueba para la carga masiva
 ## Decisiones
 
 - **DbContextFactory:** se registra `IDbContextFactory<AppDbContext>` con `AddDbContextFactory` y cada handler crea su propio contexto. No se inyecta el `DbContext` directamente porque no se puede compartir una misma instancia entre tareas que corren al mismo tiempo.
-- **Paralelismo:** hay dos flujos con `Task.WhenAll`. En la carga masiva cada usuario se inserta en una tarea con su propio `DbContext`. En la conversión se buscan la moneda de origen y la de destino en paralelo.
+- **Paralelismo:** hay dos flujos con `Task.WhenAll`. En la carga masiva cada usuario se inserta en una tarea con su propio `DbContext`, con un `SemaphoreSlim` que limita a 10 las que corren a la vez. En la conversión se buscan la moneda de origen y la de destino en paralelo. En los dos casos las tareas se lanzan con `Task.Run`, porque el proveedor de SQLite ejecuta las llamadas async de forma síncrona y sin eso correrían una detrás de otra.
 - **CQRS:** cada caso de uso tiene su command o query, su handler y su validador en archivos separados. Los handlers devuelven un `Result` y el endpoint lo traduce al código HTTP. No se usó MediatR para no agregar una dependencia más.
 - **Validaciones:** cada command tiene su validador de FluentValidation y los errores se devuelven con `400` indicando el campo.
 - **Email:** se guarda en minúsculas, porque SQLite distingue mayúsculas y si no `Juan@test.com` y `juan@test.com` quedarían como dos usuarios distintos.
@@ -210,4 +226,3 @@ Pendiente:
 
 - No hay endpoint de login, el password solo se guarda hasheado.
 - Paginación en los listados.
-- En la carga masiva no hay un límite de tareas concurrentes más allá del máximo de 1000 usuarios.

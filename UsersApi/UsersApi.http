@@ -1,0 +1,165 @@
+@host = http://localhost:5163
+@apiKey = prueba123
+
+### ---------- Users ----------
+
+### Crear usuario
+POST {{host}}/users
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "email": "juan@test.com"
+}
+
+### Crear usuario con password (se guarda hasheado)
+POST {{host}}/users
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "name": "Pedro",
+  "email": "pedro@test.com",
+  "password": "secreto123"
+}
+
+### Listar usuarios
+GET {{host}}/users
+X-API-KEY: {{apiKey}}
+
+### Listar solo los activos
+GET {{host}}/users?isActive=true
+X-API-KEY: {{apiKey}}
+
+### Obtener usuario por id
+GET {{host}}/users/1
+X-API-KEY: {{apiKey}}
+
+### Modificar usuario
+PUT {{host}}/users/1
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "name": "Juan Pérez",
+  "email": "juan.perez@test.com",
+  "isActive": false
+}
+
+### Eliminar usuario
+DELETE {{host}}/users/1
+X-API-KEY: {{apiKey}}
+
+### Carga masiva (mismo contenido que sample-data/bulk_users_test.json)
+POST {{host}}/users/bulk
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "users": [
+    { "name": "Ana Gómez", "email": "ana.gomez@test.com" },
+    { "name": "Luis Duarte", "email": "luis.duarte@test.com" },
+    { "name": "Marta Silva", "email": "marta.silva@test.com" },
+    { "name": "Carlos Ríos", "email": "carlos.rios@test.com" }
+  ]
+}
+
+### ---------- Addresses ----------
+
+### Crear dirección para un usuario
+POST {{host}}/users/1/addresses
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "street": "Calle Falsa 123",
+  "city": "Asunción",
+  "country": "Paraguay",
+  "zipCode": "9999"
+}
+
+### Listar direcciones de un usuario
+GET {{host}}/users/1/addresses
+X-API-KEY: {{apiKey}}
+
+### Modificar dirección
+PUT {{host}}/addresses/1
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "street": "Av. España 500",
+  "city": "Luque",
+  "country": "Paraguay",
+  "zipCode": "2060"
+}
+
+### Eliminar dirección
+DELETE {{host}}/addresses/1
+X-API-KEY: {{apiKey}}
+
+### ---------- Currencies ----------
+
+### Listar monedas
+GET {{host}}/currencies
+X-API-KEY: {{apiKey}}
+
+### Crear moneda
+POST {{host}}/currencies
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "code": "CLP",
+  "name": "Peso chileno",
+  "rateToBase": 7.8
+}
+
+### Convertir divisas
+POST {{host}}/currency/convert
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "fromCurrencyCode": "USD",
+  "toCurrencyCode": "PYG",
+  "amount": 100
+}
+
+### ---------- Casos de error ----------
+
+### Sin API Key (401)
+GET {{host}}/users
+
+### Usuario inválido (400)
+POST {{host}}/users
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "no-es-un-email"
+}
+
+### Dirección para un usuario que no existe (404)
+POST {{host}}/users/999999/addresses
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "street": "Calle Falsa 123",
+  "city": "Asunción",
+  "country": "Paraguay"
+}
+
+### Conversión con una moneda que no existe (404)
+POST {{host}}/currency/convert
+X-API-KEY: {{apiKey}}
+Content-Type: application/json
+
+{
+  "fromCurrencyCode": "USD",
+  "toCurrencyCode": "XXX",
+  "amount": 100
+}
