@@ -10,12 +10,12 @@ public class ApiKeyMiddleware
     {
         _next = next;
         _apiKey = config["ApiKey"]
-            ?? throw new ArgumentNullException("Falta la ApiKey en appsettings.json");
+            ?? throw new InvalidOperationException("Falta la ApiKey en appsettings.json");
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-       if (context.Request.Path.StartsWithSegments("/swagger"))
+        if (context.Request.Path.StartsWithSegments("/swagger"))
         {
             await _next(context);
             return;
@@ -25,10 +25,10 @@ public class ApiKeyMiddleware
             || provided != _apiKey)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { error = "API/Key invalida" });
+            await context.Response.WriteAsJsonAsync(new { error = "API Key invalida o ausente" });
             return;
         }
 
         await _next(context);
     }
-    }   
+}

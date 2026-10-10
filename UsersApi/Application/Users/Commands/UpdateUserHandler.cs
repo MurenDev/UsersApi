@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using UsersApi.Application.Common;
 using UsersApi.Data;
@@ -29,9 +30,18 @@ public class UpdateUserHandler
 
         user.Name = command.Name.Trim();
         user.Email = email;
-        user.IsActive = command.IsActive;
+        if (command.IsActive.HasValue)
+            user.IsActive = command.IsActive.Value;
 
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqliteException { SqliteErrorCode: 19 })
+        {
+            // 19 = constraint. Otro request tomo el mismo email justo antes de guardar
+            return Result<UserResponse>.Conflict("Ya existe otro usuario con ese email");
+        }
 
         return Result<UserResponse>.Ok(UserResponse.From(user));
     }

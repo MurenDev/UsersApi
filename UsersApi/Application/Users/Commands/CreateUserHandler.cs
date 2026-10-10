@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using UsersApi.Application.Common;
 using UsersApi.Data;
@@ -34,7 +35,17 @@ public class CreateUserHandler
         };
 
         db.Users.Add(user);
-        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqliteException { SqliteErrorCode: 19 })
+        {
+            // 19 = constraint. Dos requests al mismo tiempo con el mismo email:
+            // los dos pasan el AnyAsync pero el indice unico rechaza al segundo
+            return Result<UserResponse>.Conflict("Ya existe un usuario con ese email");
+        }
 
         return Result<UserResponse>.Ok(UserResponse.From(user));
     }

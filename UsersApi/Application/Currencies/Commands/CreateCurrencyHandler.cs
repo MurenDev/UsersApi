@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using UsersApi.Application.Common;
 using UsersApi.Data;
@@ -33,7 +34,16 @@ public class CreateCurrencyHandler
         };
 
         db.Currencies.Add(currency);
-        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqliteException { SqliteErrorCode: 19 })
+        {
+            // 19 = constraint. Dos requests al mismo tiempo con el mismo codigo
+            return Result<CurrencyResponse>.Conflict("Ya existe una moneda con ese codigo");
+        }
 
         return Result<CurrencyResponse>.Ok(CurrencyResponse.From(currency));
     }

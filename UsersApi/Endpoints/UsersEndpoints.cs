@@ -5,7 +5,7 @@ using UsersApi.Application.Users.Queries;
 
 namespace UsersApi.Endpoints;
 
-public record UpdateUserRequest(string Name, string Email, bool IsActive);
+public record UpdateUserRequest(string Name, string Email, bool? IsActive);
 
 public static class UserEndpoints
 {

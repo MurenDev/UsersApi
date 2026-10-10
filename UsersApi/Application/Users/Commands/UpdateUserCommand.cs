@@ -1,2 +1,4 @@
 namespace UsersApi.Application.Users.Commands;
-public record UpdateUserCommand(int Id, string Name, string Email, bool IsActive);
+
+// IsActive es opcional: si no se envia se mantiene el valor que ya tenia el usuario
+public record UpdateUserCommand(int Id, string Name, string Email, bool? IsActive);
